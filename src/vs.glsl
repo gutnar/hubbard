@@ -29,9 +29,8 @@ void main() {
     // Iterate
     v_root = point;
 
-    for (int i = 0; i < 20; ++i) {
-        float D = cb(sq(v_root[0]) + sq(v_root[1]));
-        v_root[0] = v_root[0] + 0.25 * v_root[0] * (sq(v_root[0]) - 3.0*sq(v_root[1]))/D;
-        v_root[1] = v_root[1] + 0.25 * v_root[1] * (sq(v_root[1]) - 3.0*sq(v_root[0]))/D;
+    for (int i = 0; i < ITERATIONS; ++i) {
+        v_root[0] = X_ITERATION;
+        v_root[1] = Y_ITERATION;
     }
 }
