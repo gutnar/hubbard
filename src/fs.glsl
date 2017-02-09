@@ -1,6 +1,5 @@
 precision highp float;
-uniform vec2 u_roots[4];
-uniform vec3 u_colors[4];
+uniform vec2 u_roots[ROOTS];
 varying vec2 v_root;
 
 float sq(float value) {
@@ -38,7 +37,7 @@ void main() {
     int closest = -1;
     float closestDist;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < ROOTS; ++i) {
         float dist = sq(v_root[0] - u_roots[i][0]) + sq(v_root[1] - u_roots[i][1]);
 
         if (closest == -1 || dist < closestDist) {
@@ -48,10 +47,10 @@ void main() {
     }
 
     // Generate hue based on closest root
-    float hue = 1.0/4.0 * float(closest);
+    float hue = 1.0/ROOTS.0 * float(closest + 1);
 
     // Generate lighting based on distance to closest root
-    float lighting = 0.5 - sqrt(closestDist)/10.0;
+    float lighting = 0.5 - sqrt(closestDist)/FADE/2.0;
 
     // Discard if not close enough
     if (lighting <= 0.0) {

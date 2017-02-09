@@ -5,23 +5,67 @@
     <title>Hubbard diagram</title>
     <style>
         body {
+            color: white;
             margin: 0;
             background: black;
         }
 
-        #canvas {
-            display: block;
+        canvas {
+            float: left;
             width: 500px;
             height: 500px;
             border: 1px solid red;
 
-            position: fixed;
+            /*
+            position: absolute;
             top: calc(50vh - 250px);
             left: calc(50vw - 250px);
+            */
+
+            margin: 20px;
+        }
+
+        form {
+            float: left;
+            margin: 20px;
+            margin-left: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
+
+<form name="settings">
+    <label>Presets</label>
+    <select name="preset"></select>
+    <fieldset disabled>
+        <label>Re (x) iteration</label>
+        <input name="x" type="text" placeholder="next x">
+        <label>Im (y) iteration</label>
+        <input name="y" type="text" placeholder="next y">
+        <label>Iterations</label>
+        <input name="iterations" type="number" value="10">
+        <label>Fade distance</label>
+        <input name="fade" type="number" value="5">
+        <label>Roots</label>
+        <div id="roots">
+            <input type="number" value="1" placeholder="Real part"> +
+            <input type="number" value="0" placeholder="Imaginary part"> i
+            <br>
+            <input type="number" value="-1" placeholder="Real part"> + <input type="number" value="0" placeholder="Imaginary part"> i <br>
+            <input type="number" value="0" placeholder="Real part"> + <input type="number" value="1" placeholder="Imaginary part"> i <br>
+            <input type="number" value="0" placeholder="Real part"> + <input type="number" value="-1" placeholder="Imaginary part"> i <br>
+        </div>
+    </fieldset>
+</form>
 </body>
 </html>
