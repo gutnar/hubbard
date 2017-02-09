@@ -71,11 +71,11 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = createShader;
-/* harmony export (immutable) */ __webpack_exports__["c"] = createProgram;
+/* harmony export (immutable) */ __webpack_exports__["b"] = createShader;
+/* harmony export (immutable) */ __webpack_exports__["d"] = createProgram;
 // Get canvas
 const canvas = document.getElementById('canvas');
-/* harmony export (immutable) */ __webpack_exports__["d"] = canvas;
+/* harmony export (immutable) */ __webpack_exports__["a"] = canvas;
 
 
 // Canvas drawing buffer size
@@ -84,7 +84,7 @@ canvas.height = canvas.clientHeight;
 
 // Initialize the GL context
 const gl = canvas.getContext('webgl', { alpha: false }) || canvas.getContext('experimental-webgl', { alpha: false });
-/* harmony export (immutable) */ __webpack_exports__["b"] = gl;
+/* harmony export (immutable) */ __webpack_exports__["c"] = gl;
 
 
 // If we don't have a GL context, give up now
@@ -141,13 +141,13 @@ function createProgram(gl, vertexShader, fragmentShader) {
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = "precision highp float;\nuniform vec2 u_roots[4];\nuniform vec3 u_colors[4];\nvarying vec2 v_root;\n\nfloat sq(float value) {\n    return value*value;\n}\n\nfloat hue2rgb(float p, float q, float t) {\n    if (t < 0.0) t += 1.0;\n    if (t > 1.0) t -= 1.0;\n    if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;\n    if (t < 1.0/2.0) return q;\n    if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;\n    return p;\n}\n\nvec3 hsv2rgb(float h, float s, float v) {\n    vec3 c = vec3(0.0, 0.0, 0.0);\n\n    if (s == 0.0) {\n        c[0] = c[1] = c[2] = v;\n    } else {\n        float q = (v < 0.5) ? (v * (1.0 + s)) : (v + s - v * s);\n        float p = 2.0 * v - q;\n\n        c[0] = hue2rgb(p, q, h + 1.0/3.0);\n        c[1] = hue2rgb(p, q, h);\n        c[2] = hue2rgb(p, q, h - 1.0/3.0);\n    }\n\n    return c;\n}\n\nvoid main() {\n    // Find closest root\n    int closest = -1;\n    float closestDist;\n\n    for (int i = 0; i < 4; ++i) {\n        float dist = sq(v_root[0] - u_roots[i][0]) + sq(v_root[1] - u_roots[i][1]);\n\n        if (closest == -1 || dist < closestDist) {\n            closest = i;\n            closestDist = dist;\n        }\n    }\n\n    // Generate hue based on closest root\n    float hue = 1.0/4.0 * float(closest);\n\n    // Generate lighting based on distance to closest root\n    float lighting = 0.5 - sqrt(closestDist)/10.0;\n\n    // Discard if not close enough\n    if (lighting <= 0.0) {\n        discard;\n    }\n\n    gl_FragColor = vec4(hsv2rgb(hue, 1.0, lighting), 1.0);\n}"
+module.exports = "precision highp float;\nuniform vec2 u_roots[ROOTS];\nvarying vec2 v_root;\n\nfloat sq(float value) {\n    return value*value;\n}\n\nfloat hue2rgb(float p, float q, float t) {\n    if (t < 0.0) t += 1.0;\n    if (t > 1.0) t -= 1.0;\n    if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;\n    if (t < 1.0/2.0) return q;\n    if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;\n    return p;\n}\n\nvec3 hsv2rgb(float h, float s, float v) {\n    vec3 c = vec3(0.0, 0.0, 0.0);\n\n    if (s == 0.0) {\n        c[0] = c[1] = c[2] = v;\n    } else {\n        float q = (v < 0.5) ? (v * (1.0 + s)) : (v + s - v * s);\n        float p = 2.0 * v - q;\n\n        c[0] = hue2rgb(p, q, h + 1.0/3.0);\n        c[1] = hue2rgb(p, q, h);\n        c[2] = hue2rgb(p, q, h - 1.0/3.0);\n    }\n\n    return c;\n}\n\nvoid main() {\n    // Find closest root\n    int closest = -1;\n    float closestDist;\n\n    for (int i = 0; i < ROOTS; ++i) {\n        float dist = sq(v_root[0] - u_roots[i][0]) + sq(v_root[1] - u_roots[i][1]);\n\n        if (closest == -1 || dist < closestDist) {\n            closest = i;\n            closestDist = dist;\n        }\n    }\n\n    // Generate hue based on closest root\n    float hue = 1.0/ROOTS.0 * float(closest + 1);\n\n    // Generate lighting based on distance to closest root\n    float lighting = 0.5 - sqrt(closestDist)/FADE/2.0;\n\n    // Discard if not close enough\n    if (lighting <= 0.0) {\n        discard;\n    }\n\n    gl_FragColor = vec4(hsv2rgb(hue, 1.0, lighting), 1.0);\n}"
 
 /***/ }),
 /* 2 */
 /***/ (function(module, exports) {
 
-module.exports = "precision highp float;\nattribute vec2 a_position;\nuniform vec2 u_resolution;\nuniform vec2 u_offset;\nuniform float u_scale;\nvarying vec2 v_root;\n\nfloat sq(float value) {\n    return value*value;\n}\n\nfloat cb(float value) {\n    return value*value*value;\n}\n\nvoid main() {\n    // Find point location in clip space\n    vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;\n\n    // Set origin to top-left\n    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n\n    // Point size\n    gl_PointSize = 1.0;\n\n    // Convert pixel location to point\n    vec2 point = (a_position - u_offset) / u_scale;\n\n    // Iterate\n    v_root = point;\n\n    for (int i = 0; i < 20; ++i) {\n        float D = cb(sq(v_root[0]) + sq(v_root[1]));\n        v_root[0] = v_root[0] + 0.25 * v_root[0] * (sq(v_root[0]) - 3.0*sq(v_root[1]))/D;\n        v_root[1] = v_root[1] + 0.25 * v_root[1] * (sq(v_root[1]) - 3.0*sq(v_root[0]))/D;\n    }\n}\n"
+module.exports = "precision highp float;\nattribute vec2 a_position;\nuniform vec2 u_resolution;\nuniform vec2 u_offset;\nuniform float u_scale;\nvarying vec2 v_root;\n\nfloat sq(float value) {\n    return value*value;\n}\n\nfloat cb(float value) {\n    return value*value*value;\n}\n\nvoid main() {\n    // Find point location in clip space\n    vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;\n\n    // Set origin to top-left\n    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n\n    // Point size\n    gl_PointSize = 1.0;\n\n    // Convert pixel location to point\n    vec2 point = (a_position - u_offset) / u_scale;\n\n    // Iterate\n    v_root = point;\n\n    for (int i = 0; i < ITERATIONS; ++i) {\n        v_root[0] = X_ITERATION;\n        v_root[1] = Y_ITERATION;\n    }\n}\n"
 
 /***/ }),
 /* 3 */
@@ -166,74 +166,149 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
-// Shader program
-const vertexShader = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__gl__["a" /* createShader */])(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */], __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].VERTEX_SHADER, __WEBPACK_IMPORTED_MODULE_1__vs_glsl___default.a);
-const fragmentShader = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__gl__["a" /* createShader */])(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */], __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].FRAGMENT_SHADER, __WEBPACK_IMPORTED_MODULE_2__fs_glsl___default.a);
-const shaderProgram = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* createProgram */])(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */], vertexShader, fragmentShader);
+// Initial scale and offset
+let scale = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 5;
+const offset = [__WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 2, __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height / 2];
+
+// Presets
+const presets = [{
+    name: 'z^4 - 1 = 0',
+    x: 'x + 0.25*x*(sq(x) - 3.0*sq(y))/cb(sq(x) + sq(y))',
+    y: 'y + 0.25*y*(sq(y) - 3.0*sq(x))/cb(sq(x) + sq(y))',
+    roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
+    iterations: 20,
+    fade: 5.0
+}, {
+    name: 'Test',
+    x: 'x + 0.25*sq(x)*(sq(x) - 3.0*sq(y))/cb(sq(x) + sq(y))',
+    y: 'y + 0.25*sq(y)*(sq(y) - 3.0*sq(x))/cb(sq(x) + sq(y))',
+    roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
+    iterations: 10,
+    fade: 5.0
+}];
+
+// Inputs
+const form = document.forms.settings;
+const presetInput = document.forms.settings.preset;
+const rootsContainer = document.getElementById('roots');
+
+presets.forEach((preset, index) => {
+    presetInput.innerHTML += '<option value="' + index + '">' + preset.name + '</option>';
+});
+
+// Switching preset
+presetInput.addEventListener('change', e => {
+    setPreset(presetInput.value);
+});
 
 // Attribute locations
-const positionAttributeLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].getAttribLocation(shaderProgram, 'a_position');
-const resolutionUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].getUniformLocation(shaderProgram, 'u_resolution');
-const offsetUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].getUniformLocation(shaderProgram, 'u_offset');
-const scaleUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].getUniformLocation(shaderProgram, 'u_scale');
-const rootsUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].getUniformLocation(shaderProgram, 'u_roots');
-const colorsUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].getUniformLocation(shaderProgram, 'u_colors');
+let positionAttributeLocation, resolutionUniformLocation, offsetUniformLocation, scaleUniformLocation, rootsUniformLocation;
 
-// Use shader
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].useProgram(shaderProgram);
+// Re-compile shader
+function setPreset(index) {
+    // Get preset
+    const preset = presets[index];
 
-// Enable position attribute
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].enableVertexAttribArray(positionAttributeLocation);
+    // Create source
+    let presetVertexShaderSource = __WEBPACK_IMPORTED_MODULE_1__vs_glsl___default.a;
+    let presetFragmentShaderSource = __WEBPACK_IMPORTED_MODULE_2__fs_glsl___default.a;
 
-// Set screen resolution
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform2f(resolutionUniformLocation, __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].width, __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].height);
+    presetVertexShaderSource = presetVertexShaderSource.replace(/ITERATIONS/g, preset.iterations + '');
 
-// Get roots
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform2fv(rootsUniformLocation, new Float32Array([1, 0, -1, 0, 0, 1, 0, -1]));
+    presetVertexShaderSource = presetVertexShaderSource.replace(/X_ITERATION/g, preset.x.replace(/x/g, 'v_root[0]').replace(/y/g, 'v_root[1]'));
 
-// Set root colors
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform3fv(colorsUniformLocation, new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]));
+    presetVertexShaderSource = presetVertexShaderSource.replace(/Y_ITERATION/g, preset.y.replace(/x/g, 'v_root[0]').replace(/y/g, 'v_root[1]'));
+
+    presetFragmentShaderSource = presetFragmentShaderSource.replace(/FADE/g, (preset.fade + '').indexOf('.') === -1 ? preset.fade + '.0' : preset.fade + '');
+
+    presetFragmentShaderSource = presetFragmentShaderSource.replace(/ROOTS/g, preset.roots.length + '');
+
+    // Update form
+    form.x.value = preset.x;
+    form.y.value = preset.y;
+    form.iterations.value = preset.iterations;
+    form.fade.value = preset.fade;
+
+    rootsContainer.innerHTML = '';
+
+    preset.roots.forEach(root => {
+        rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ' + '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i' + '<br>';
+    });
+
+    // Create shaders
+    const vertexShader = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* createShader */])(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */], __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].VERTEX_SHADER, presetVertexShaderSource);
+    const fragmentShader = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* createShader */])(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */], __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].FRAGMENT_SHADER, presetFragmentShaderSource);
+    const shaderProgram = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__gl__["d" /* createProgram */])(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */], vertexShader, fragmentShader);
+
+    // Attribute locations
+    positionAttributeLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].getAttribLocation(shaderProgram, 'a_position');
+    resolutionUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].getUniformLocation(shaderProgram, 'u_resolution');
+    offsetUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].getUniformLocation(shaderProgram, 'u_offset');
+    scaleUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].getUniformLocation(shaderProgram, 'u_scale');
+    rootsUniformLocation = __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].getUniformLocation(shaderProgram, 'u_roots');
+
+    // Use shader
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].useProgram(shaderProgram);
+
+    // Enable position attribute
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].enableVertexAttribArray(positionAttributeLocation);
+
+    // Set screen resolution
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2f(resolutionUniformLocation, __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width, __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height);
+
+    // Get roots
+    const roots = [];
+
+    preset.roots.forEach(root => {
+        roots.push(root[0]);
+        roots.push(root[1]);
+    });
+
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2fv(rootsUniformLocation, new Float32Array(roots));
+
+    generatePositions();
+
+    // Set offset and scale
+    scale = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 5;
+    offset[0] = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 2;
+    offset[1] = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height / 2;
+
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2f(offsetUniformLocation, offset[0], offset[1]);
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform1f(scaleUniformLocation, scale);
+
+    // Bind the position buffer
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].vertexAttribPointer(positionAttributeLocation, 2, __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].FLOAT, false, 0, 0);
+
+    // Render
+    render();
+}
 
 // Generate position buffer
-const positionBuffer = __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].createBuffer();
+const positionBuffer = __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].createBuffer();
 
 // Create positions
 function generatePositions() {
     const points = [];
 
-    for (let x = 0; x < __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].width; ++x) {
-        for (let y = 0; y < __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].height; ++y) {
+    for (let x = 0; x < __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width; ++x) {
+        for (let y = 0; y < __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height; ++y) {
             points.push(x);
             points.push(y);
         }
     }
 
-    __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].bindBuffer(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].ARRAY_BUFFER, positionBuffer);
-    __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].bufferData(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].ARRAY_BUFFER, new Float32Array(points), __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].STATIC_DRAW);
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].bindBuffer(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].ARRAY_BUFFER, positionBuffer);
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].bufferData(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].ARRAY_BUFFER, new Float32Array(points), __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].STATIC_DRAW);
 }
-
-generatePositions();
-
-// Set offset and scale
-let scale = __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].width / 5;
-const offset = [__WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].width / 2, __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].height / 2];
-
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform2f(offsetUniformLocation, offset[0], offset[1]);
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform1f(scaleUniformLocation, scale);
-
-// Bind the position buffer
-__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].vertexAttribPointer(positionAttributeLocation, 2, __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].FLOAT, false, 0, 0);
 
 // Render
 function render() {
-    __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].drawArrays(__WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].POINTS, 0, __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].width * __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].height);
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].drawArrays(__WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].POINTS, 0, __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width * __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height);
 }
-
-render();
 
 // Resize window
 window.addEventListener('resize', () => {
-    __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform2f(resolutionUniformLocation, __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].width, __WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].height);
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2f(resolutionUniformLocation, __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width, __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height);
 
     generatePositions();
     render();
@@ -243,7 +318,7 @@ window.addEventListener('resize', () => {
 let panning = false;
 const panningAnchor = [];
 
-__WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].addEventListener('mousedown', e => {
+__WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].addEventListener('mousedown', e => {
     e.preventDefault();
 
     panning = true;
@@ -256,7 +331,7 @@ document.addEventListener('mousemove', e => {
         offset[0] = panningAnchor[0] + e.pageX;
         offset[1] = panningAnchor[1] + e.pageY;
 
-        __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform2f(offsetUniformLocation, offset[0], offset[1]);
+        __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2f(offsetUniformLocation, offset[0], offset[1]);
 
         requestAnimationFrame(render);
     }
@@ -267,16 +342,28 @@ document.addEventListener('mouseup', e => {
 });
 
 // Change scale
-__WEBPACK_IMPORTED_MODULE_0__gl__["d" /* canvas */].addEventListener('wheel', e => {
+__WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].addEventListener('wheel', e => {
+    e.preventDefault();
+
+    const previousScale = scale;
+
     scale -= e.deltaY / 10;
 
     if (scale < 1) {
         scale = 1;
     }
 
-    __WEBPACK_IMPORTED_MODULE_0__gl__["b" /* gl */].uniform1f(scaleUniformLocation, scale);
+    //offset[0] *= scale/previousScale;
+    //offset[1] *= scale/previousScale;
+
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform1f(scaleUniformLocation, scale);
+    __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2f(offsetUniformLocation, offset[0], offset[1]);
+
     requestAnimationFrame(render);
 });
+
+// Default preset
+setPreset(0);
 
 /***/ })
 /******/ ]);
