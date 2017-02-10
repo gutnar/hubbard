@@ -46,7 +46,12 @@ presetInput.addEventListener('change', e => {
 let positionAttributeLocation, resolutionUniformLocation, offsetUniformLocation, scaleUniformLocation, rootsUniformLocation;
 
 // Re-compile shader
-function setPreset(index) {
+let activePresetIndex;
+
+function setPreset(index, updateForm=true) {
+    // Update active preset
+    activePresetIndex = index;
+
     // Get preset
     const preset = presets[index];
 
@@ -70,18 +75,45 @@ function setPreset(index) {
         .replace(/ROOTS/g, preset.roots.length + '');
 
     // Update form
-    form.x.value = preset.x;
-    form.y.value = preset.y;
-    form.iterations.value = preset.iterations;
-    form.fade.value = preset.fade;
+    if (updateForm) {
+        form.x.value = preset.x;
+        form.y.value = preset.y;
+        form.iterations.value = preset.iterations;
+        form.fade.value = preset.fade;
 
-    rootsContainer.innerHTML = '';
+        rootsContainer.innerHTML = '';
 
-    preset.roots.forEach(root => {
-        rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ' +
-            '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i' +
-            '<br>';
-    });
+        preset.roots.forEach(root => {
+            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ' +
+                '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i' +
+                ' <button type="button">Remove</button><br>';
+        });
+
+        rootsContainer.innerHTML += '<button type="button">Add root</button>';
+
+        // Editing roots
+        let inputIndex = 0;
+        let buttonIndex = 0;
+
+        rootsContainer.childNodes.forEach((element, index) => {
+            if (element.type === 'number') {
+                element.addEventListener('input', (function (index) {
+                    preset.roots[parseInt(index/2)][index%2] = this.value;
+                    setPreset(activePresetIndex, false);
+                }).bind(element, inputIndex++));
+            } else if (element.type === 'button' && element.innerHTML === 'Remove') {
+                element.addEventListener('click', (function (index) {
+                    preset.roots.splice(index, 1);
+                    setPreset(activePresetIndex);
+                }).bind(element, buttonIndex++));
+            } else if (element.type === 'button' && element.innerHTML === 'Add root') {
+                element.addEventListener('click', () => {
+                    preset.roots.push([0, 0]);
+                    setPreset(activePresetIndex);
+                });
+            }
+        });
+    }
 
     // Create shaders
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, presetVertexShaderSource);
@@ -117,9 +149,11 @@ function setPreset(index) {
     generatePositions();
 
     // Set offset and scale
-    scale = canvas.width/5;
-    offset[0] = canvas.width/2;
-    offset[1] = canvas.height/2;
+    if (updateForm) {
+        scale = canvas.width / 5;
+        offset[0] = canvas.width / 2;
+        offset[1] = canvas.height / 2;
+    }
 
     gl.uniform2f(offsetUniformLocation, offset[0], offset[1]);
     gl.uniform1f(scaleUniformLocation, scale);
@@ -210,5 +244,33 @@ canvas.addEventListener('wheel', e => {
     requestAnimationFrame(render);
 });
 
-// Default preset
+// Change x iteration
+form.x.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.x = form.x.value;
+    setPreset(activePresetIndex, false);
+});
+
+// Change y iteration
+form.y.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.y = form.y.value;
+    setPreset(activePresetIndex, false);
+});
+
+// Change iterations
+form.iterations.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.iterations = form.iterations.value;
+    setPreset(activePresetIndex, false);
+});
+
+// Change fade
+form.fade.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.fade = form.fade.value;
+    setPreset(activePresetIndex, false);
+});
+
+// Activate default preset
 setPreset(0);
