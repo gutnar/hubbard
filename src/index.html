@@ -12,15 +12,9 @@
 
         canvas {
             float: left;
-            width: 500px;
-            height: 500px;
+            width: 400px;
+            height: 400px;
             border: 1px solid red;
-
-            /*
-            position: absolute;
-            top: calc(50vh - 250px);
-            left: calc(50vw - 250px);
-            */
 
             margin: 20px;
         }
@@ -58,6 +52,8 @@
     <label>Presets</label>
     <select name="preset"></select>
     <fieldset>
+        <label>Iteration</label>
+        <input name="f" type="text" placeholder="f(z)">
         <label>Re (x) iteration</label>
         <input name="x" type="text" placeholder="next x">
         <label>Im (y) iteration</label>
@@ -76,7 +72,7 @@
     <p>
         Iteration calculations:<br>
         * All numbers must be floats and must contain a dot.<br>
-        * Use sq to square and cb to cube a number.
+        * Use sq to square and cb to cube a number.<br>
         * When the input is not correctly formatted, the image will not update.
     </p>
     <p>

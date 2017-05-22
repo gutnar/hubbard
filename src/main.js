@@ -1,4 +1,5 @@
 import {canvas, gl, createShader, createProgram} from './gl'
+import * as mathjs from 'mathjs'
 
 // Shader source
 import vertexShaderSource from './vs.glsl'
@@ -17,6 +18,14 @@ const presets = [
         roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
         iterations: 20,
         fade: 5.0
+    },
+    {
+        name: 'Julia set',
+        x: 'sq(x) - sq(y) + 1.0 - 1.618',
+        y: '2.0*x*y',
+        roots: [[0, 0]],
+        iterations: 20,
+        fade: 10.0
     },
     {
         name: 'Test',
@@ -63,16 +72,18 @@ function setPreset(index, updateForm=true) {
         .replace(/ITERATIONS/g, preset.iterations + '');
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/X_ITERATION/g, preset.x.replace(/x/g, 'v_root[0]').replace(/y/g, 'v_root[1]'));
+        .replace(/X_ITERATION/g, preset.x);
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/Y_ITERATION/g, preset.y.replace(/x/g, 'v_root[0]').replace(/y/g, 'v_root[1]'));
+        .replace(/Y_ITERATION/g, preset.y);
 
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/FADE/g, (preset.fade + '').indexOf('.') === -1 ? preset.fade + '.0' : preset.fade + '');
 
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/ROOTS/g, preset.roots.length + '');
+
+    console.log(presetVertexShaderSource);
 
     // Update form
     if (updateForm) {
@@ -237,11 +248,16 @@ canvas.addEventListener('wheel', e => {
 
     offset[0] = scale/previousScale*(offset[0] - canvas.width/2) + canvas.width/2;
     offset[1] = scale/previousScale*(offset[1] - canvas.height/2) + canvas.height/2;
-    
+
     gl.uniform1f(scaleUniformLocation, scale);
     gl.uniform2f(offsetUniformLocation, offset[0], offset[1]);
 
     requestAnimationFrame(render);
+});
+
+// Change f(z)
+form.f.addEventListener('input', () => {
+    console.log(mathjs.simplify(form.f.value.replace(/z/g, '(x+i*y)')));
 });
 
 // Change x iteration
