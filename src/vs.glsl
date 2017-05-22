@@ -30,6 +30,9 @@ void main() {
     v_root = point;
 
     for (int i = 0; i < ITERATIONS; ++i) {
+        float x = v_root[0];
+        float y = v_root[1];
+
         v_root[0] = X_ITERATION;
         v_root[1] = Y_ITERATION;
     }

@@ -1,4 +1,5 @@
 import {canvas, gl, createShader, createProgram} from './gl'
+import * as mathjs from 'mathjs'
 
 // Shader source
 import vertexShaderSource from './vs.glsl'
@@ -17,6 +18,14 @@ const presets = [
         roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
         iterations: 20,
         fade: 5.0
+    },
+    {
+        name: 'Julia set',
+        x: 'sq(x) - sq(y) - 0.4',
+        y: '2.0*x*y + 0.6',
+        roots: [[0, 0]],
+        iterations: 20,
+        fade: 2.0
     },
     {
         name: 'Test',
@@ -48,6 +57,18 @@ let positionAttributeLocation, resolutionUniformLocation, offsetUniformLocation,
 // Re-compile shader
 let activePresetIndex;
 
+function hue2rgb(t) {
+    const q = 1;
+    const p = 0;
+
+    if (t < 0.0) t += 1.0;
+    if (t > 1.0) t -= 1.0;
+    if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;
+    if (t < 1.0/2.0) return q;
+    if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+    return p;
+}
+
 function setPreset(index, updateForm=true) {
     // Update active preset
     activePresetIndex = index;
@@ -63,16 +84,18 @@ function setPreset(index, updateForm=true) {
         .replace(/ITERATIONS/g, preset.iterations + '');
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/X_ITERATION/g, preset.x.replace(/x/g, 'v_root[0]').replace(/y/g, 'v_root[1]'));
+        .replace(/X_ITERATION/g, preset.x);
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/Y_ITERATION/g, preset.y.replace(/x/g, 'v_root[0]').replace(/y/g, 'v_root[1]'));
+        .replace(/Y_ITERATION/g, preset.y);
 
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/FADE/g, (preset.fade + '').indexOf('.') === -1 ? preset.fade + '.0' : preset.fade + '');
 
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/ROOTS/g, preset.roots.length + '');
+
+    console.log(presetVertexShaderSource);
 
     // Update form
     if (updateForm) {
@@ -83,10 +106,17 @@ function setPreset(index, updateForm=true) {
 
         rootsContainer.innerHTML = '';
 
-        preset.roots.forEach(root => {
-            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ' +
-                '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i' +
-                ' <button type="button">Remove</button><br>';
+        preset.roots.forEach((root, index) => {
+            const h = (index+ 1)/preset.roots.length;
+            const r = Math.floor(hue2rgb(h + 1.0/3.0)*255);
+            const g = Math.floor(hue2rgb(h)*255);
+            const b = Math.floor(hue2rgb(h - 1.0/3.0)*255);
+            const color = 'rgb(' + r + ',' + g + ',' + b + ')';
+
+            rootsContainer.innerHTML += '<div class="root-color" style="background-color: '+color+'"></div>';
+            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ';
+            rootsContainer.innerHTML += '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i';
+            rootsContainer.innerHTML += ' <button type="button">Remove</button><br>';
         });
 
         rootsContainer.innerHTML += '<button type="button">Add root</button>';
@@ -235,13 +265,18 @@ canvas.addEventListener('wheel', e => {
         scale = 1;
     }
 
-    //offset[0] *= scale/previousScale;
-    //offset[1] *= scale/previousScale;
+    offset[0] = scale/previousScale*(offset[0] - canvas.width/2) + canvas.width/2;
+    offset[1] = scale/previousScale*(offset[1] - canvas.height/2) + canvas.height/2;
 
     gl.uniform1f(scaleUniformLocation, scale);
     gl.uniform2f(offsetUniformLocation, offset[0], offset[1]);
 
     requestAnimationFrame(render);
+});
+
+// Change f(z)
+form.f.addEventListener('input', () => {
+    console.log(mathjs.simplify(form.f.value.replace(/z/g, '(x+i*y)')));
 });
 
 // Change x iteration
