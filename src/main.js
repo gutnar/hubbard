@@ -235,9 +235,9 @@ canvas.addEventListener('wheel', e => {
         scale = 1;
     }
 
-    //offset[0] *= scale/previousScale;
-    //offset[1] *= scale/previousScale;
-
+    offset[0] = scale/previousScale*(offset[0] - canvas.width/2) + canvas.width/2;
+    offset[1] = scale/previousScale*(offset[1] - canvas.height/2) + canvas.height/2;
+    
     gl.uniform1f(scaleUniformLocation, scale);
     gl.uniform2f(offsetUniformLocation, offset[0], offset[1]);
 
