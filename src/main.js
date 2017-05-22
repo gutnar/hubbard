@@ -34,6 +34,22 @@ const presets = [
         roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
         iterations: 10,
         fade: 5.0
+    },
+    {
+        name: 'z^3 - 1 = 0',
+        x: 'cb(x) - 3.0*x*sq(y) - 1.0',
+        y: '3.0*sq(x)*y - cb(y)',
+        roots: [[1.3247, 0], [-0.66236, -0.56228], [-0.66236, 0.56228]],
+        iterations: 4,
+        fade: 100.0
+    },
+    {
+        name: 'e^z = 0',
+        x: 'cb(x) - 3.0*x*sq(y) - 1.0',
+        y: '3.0*sq(x)*y - cb(y)',
+        roots: [[1.3247, 0], [-0.66236, -0.56228], [-0.66236, 0.56228]],
+        iterations: 4,
+        fade: 100.0
     }
 ];
 
@@ -274,10 +290,12 @@ canvas.addEventListener('wheel', e => {
     requestAnimationFrame(render);
 });
 
+/*
 // Change f(z)
 form.f.addEventListener('input', () => {
     console.log(mathjs.simplify(form.f.value.replace(/z/g, '(x+i*y)')));
 });
+*/
 
 // Change x iteration
 form.x.addEventListener('input', () => {
