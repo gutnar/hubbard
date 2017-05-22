@@ -21,11 +21,11 @@ const presets = [
     },
     {
         name: 'Julia set',
-        x: 'sq(x) - sq(y) + 1.0 - 1.618',
-        y: '2.0*x*y',
+        x: 'sq(x) - sq(y) - 0.4',
+        y: '2.0*x*y + 0.6',
         roots: [[0, 0]],
         iterations: 20,
-        fade: 10.0
+        fade: 2.0
     },
     {
         name: 'Test',
@@ -56,6 +56,18 @@ let positionAttributeLocation, resolutionUniformLocation, offsetUniformLocation,
 
 // Re-compile shader
 let activePresetIndex;
+
+function hue2rgb(t) {
+    const q = 1;
+    const p = 0;
+
+    if (t < 0.0) t += 1.0;
+    if (t > 1.0) t -= 1.0;
+    if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;
+    if (t < 1.0/2.0) return q;
+    if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+    return p;
+}
 
 function setPreset(index, updateForm=true) {
     // Update active preset
@@ -94,10 +106,17 @@ function setPreset(index, updateForm=true) {
 
         rootsContainer.innerHTML = '';
 
-        preset.roots.forEach(root => {
-            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ' +
-                '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i' +
-                ' <button type="button">Remove</button><br>';
+        preset.roots.forEach((root, index) => {
+            const h = (index+ 1)/preset.roots.length;
+            const r = Math.floor(hue2rgb(h + 1.0/3.0)*255);
+            const g = Math.floor(hue2rgb(h)*255);
+            const b = Math.floor(hue2rgb(h - 1.0/3.0)*255);
+            const color = 'rgb(' + r + ',' + g + ',' + b + ')';
+
+            rootsContainer.innerHTML += '<div class="root-color" style="background-color: '+color+'"></div>';
+            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ';
+            rootsContainer.innerHTML += '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i';
+            rootsContainer.innerHTML += ' <button type="button">Remove</button><br>';
         });
 
         rootsContainer.innerHTML += '<button type="button">Add root</button>';
