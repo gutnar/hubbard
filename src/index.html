@@ -52,6 +52,10 @@
             clear: both;
             margin: 20px;
         }
+
+        #parameter {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -68,10 +72,18 @@
         <label>Iteration</label>
         <input name="f" type="text" placeholder="f(z)">
         -->
-        <label>Re (x) iteration</label>
-        <input name="x" type="text" placeholder="next x">
-        <label>Im (y) iteration</label>
-        <input name="y" type="text" placeholder="next y">
+        <div id="iterations">
+            <label>Re (x) iteration</label>
+            <input name="x" type="text" placeholder="next x">
+            <label>Im (y) iteration</label>
+            <input name="y" type="text" placeholder="next y">
+        </div>
+        <div id="parameter">
+            <label>Re(c)</label>
+            <input name="re_c" type="number" step="0.01" placeholder="Re(c)">
+            <label>Im(c)</label>
+            <input name="im_c" type="number" step="0.01" placeholder="Im(c)">
+        </div>
         <label>Iterations</label>
         <input name="iterations" type="number" value="10">
         <label>Fade distance</label>

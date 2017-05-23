@@ -21,8 +21,10 @@ const presets = [
     },
     {
         name: 'Julia set',
-        x: 'sq(x) - sq(y) - 0.4',
-        y: '2.0*x*y + 0.6',
+        input: 'parameter',
+        x: 'sq(x) - sq(y) + Re(c)',
+        y: '2.0*x*y + Im(c)',
+        c: [-0.618, 0],
         roots: [[1, 0], [0, 1]],
         iterations: 20,
         fade: 2.0
@@ -94,6 +96,24 @@ function setPreset(index, updateForm=true) {
     // Get preset
     const preset = presets[index];
 
+    // Show inputs
+    const inputs = preset.input || 'iterations';
+
+    if (inputs === 'iterations') {
+        document.getElementById('parameter').style.display = 'none';
+        document.getElementById('iterations').style.display = 'block';
+    } else {
+        document.getElementById('parameter').style.display = 'block';
+        document.getElementById('iterations').style.display = 'none';
+    }
+
+    let c = ['0.0', '0.0'];
+
+    if (preset.c) {
+        c[0] = ((preset.c[0]+'').indexOf('.') === -1) ? (preset.c[0] + '.0') : preset.c[0];
+        c[1] = ((preset.c[1]+'').indexOf('.') === -1) ? (preset.c[1] + '.0') : preset.c[1];
+    }
+
     // Create source
     let presetVertexShaderSource = vertexShaderSource;
     let presetFragmentShaderSource = fragmentShaderSource;
@@ -102,10 +122,10 @@ function setPreset(index, updateForm=true) {
         .replace(/ITERATIONS/g, preset.iterations + '');
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/X_ITERATION/g, preset.x);
+        .replace(/X_ITERATION/g, preset.x.replace(/Re\(c\)/g, c[0]).replace(/Im\(c\)/g, c[1]));
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/Y_ITERATION/g, preset.y);
+        .replace(/Y_ITERATION/g, preset.y.replace(/Re\(c\)/g, c[0]).replace(/Im\(c\)/g, c[1]));
 
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/FADE/g, (preset.fade + '').indexOf('.') === -1 ? preset.fade + '.0' : preset.fade + '');
@@ -123,6 +143,8 @@ function setPreset(index, updateForm=true) {
     if (updateForm) {
         form.x.value = preset.x;
         form.y.value = preset.y;
+        form.re_c.value = c[0];
+        form.im_c.value = c[1];
         form.iterations.value = preset.iterations;
         form.fade.value = preset.fade;
 
@@ -323,6 +345,20 @@ form.y.addEventListener('input', () => {
     preset.y = form.y.value;
     setPreset(activePresetIndex, false);
 });
+
+// Change parameter real part
+form.re_c.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.c[0] = form.re_c.value;
+    setPreset(activePresetIndex, false);
+})
+
+// Change parameter imaginary part
+form.im_c.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.c[1] = form.im_c.value;
+    setPreset(activePresetIndex, false);
+})
 
 // Change iterations
 form.iterations.addEventListener('input', () => {
