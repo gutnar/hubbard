@@ -17,13 +17,13 @@ const presets = [
         y: 'y + 0.25*y*(sq(y) - 3.0*sq(x))/cb(sq(x) + sq(y))',
         roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
         iterations: 20,
-        fade: 5.0
+        fade: 500000
     },
     {
         name: 'Julia set',
         x: 'sq(x) - sq(y) - 0.4',
         y: '2.0*x*y + 0.6',
-        roots: [[0, 0]],
+        roots: [[1, 0], [0, 1]],
         iterations: 20,
         fade: 2.0
     },
@@ -57,6 +57,8 @@ const presets = [
 const form = document.forms.settings;
 const presetInput = document.forms.settings.preset;
 const rootsContainer = document.getElementById('roots');
+const scaleOutput = document.getElementById('scale');
+scaleOutput.innerHTML = (1/scale).toExponential(2);
 
 presets.forEach((preset, index) => {
     presetInput.innerHTML += '<option value="' + index + '">' + preset.name + '</option>';
@@ -134,8 +136,8 @@ function setPreset(index, updateForm=true) {
             const color = 'rgb(' + r + ',' + g + ',' + b + ')';
 
             rootsContainer.innerHTML += '<div class="root-color" style="background-color: '+color+'"></div>';
-            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ';
-            rootsContainer.innerHTML += '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i';
+            rootsContainer.innerHTML += '<input type="number" step="0.1" value="' + root[0] + '" placeholder="Real part"> + ';
+            rootsContainer.innerHTML += '<input type="number" step="0.1" value="' + root[1] + '" placeholder="Imaginary part"> i';
             rootsContainer.innerHTML += ' <button type="button">Remove</button><br>';
         });
 
@@ -203,6 +205,7 @@ function setPreset(index, updateForm=true) {
         scale = canvas.width / 5;
         offset[0] = canvas.width / 2;
         offset[1] = canvas.height / 2;
+        scaleOutput.innerHTML = (1/scale).toExponential(2);
     }
 
     gl.uniform2f(offsetUniformLocation, offset[0], offset[1]);
@@ -279,19 +282,17 @@ canvas.addEventListener('wheel', e => {
 
     const previousScale = scale;
 
-    if (e.ctrlKey) {
-        if (e.deltaY < 0) {
-            scale *= 2;
-        } else {
-            scale /= 2;
-        }
+    if (e.deltaY < 0) {
+        scale *= 2;
     } else {
-        scale -= e.deltaY/10;
+        scale /= 2;
     }
 
     if (scale < 1) {
         scale = 1;
     }
+
+    scaleOutput.innerHTML = (1/scale).toExponential(2);
 
     offset[0] = scale/previousScale*(offset[0] - canvas.width/2) + canvas.width/2;
     offset[1] = scale/previousScale*(offset[1] - canvas.height/2) + canvas.height/2;
