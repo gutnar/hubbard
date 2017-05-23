@@ -26363,6 +26363,13 @@ const presets = [{
     iterations: 20,
     fade: 500000
 }, {
+    name: 'z^3 - 1 = 0',
+    x: 'cb(x) - 3.0*x*sq(y) - 1.0',
+    y: '3.0*sq(x)*y - cb(y)',
+    roots: [[1.3247, 0], [-0.66236, -0.56228], [-0.66236, 0.56228]],
+    iterations: 4,
+    fade: 100.0
+}, {
     name: 'Julia set',
     input: 'parameter',
     x: 'sq(x) - sq(y) + Re(c)',
@@ -26372,26 +26379,12 @@ const presets = [{
     iterations: 20,
     fade: 2.0
 }, {
-    name: 'Test',
+    name: 'Random test',
     x: 'x + 0.25*sq(x)*(sq(x) - 3.0*sq(y))/cb(sq(x) + sq(y))',
     y: 'y + 0.25*sq(y)*(sq(y) - 3.0*sq(x))/cb(sq(x) + sq(y))',
     roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
     iterations: 10,
     fade: 5.0
-}, {
-    name: 'z^3 - 1 = 0',
-    x: 'cb(x) - 3.0*x*sq(y) - 1.0',
-    y: '3.0*sq(x)*y - cb(y)',
-    roots: [[1.3247, 0], [-0.66236, -0.56228], [-0.66236, 0.56228]],
-    iterations: 4,
-    fade: 100.0
-}, {
-    name: 'e^z = 0',
-    x: 'cb(x) - 3.0*x*sq(y) - 1.0',
-    y: '3.0*sq(x)*y - cb(y)',
-    roots: [[1.3247, 0], [-0.66236, -0.56228], [-0.66236, 0.56228]],
-    iterations: 4,
-    fade: 100.0
 }];
 
 // Inputs
