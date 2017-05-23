@@ -17,13 +17,15 @@ const presets = [
         y: 'y + 0.25*y*(sq(y) - 3.0*sq(x))/cb(sq(x) + sq(y))',
         roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
         iterations: 20,
-        fade: 5.0
+        fade: 500000
     },
     {
         name: 'Julia set',
-        x: 'sq(x) - sq(y) - 0.4',
-        y: '2.0*x*y + 0.6',
-        roots: [[0, 0]],
+        input: 'parameter',
+        x: 'sq(x) - sq(y) + Re(c)',
+        y: '2.0*x*y + Im(c)',
+        c: [-0.618, 0],
+        roots: [[1, 0], [0, 1]],
         iterations: 20,
         fade: 2.0
     },
@@ -57,6 +59,8 @@ const presets = [
 const form = document.forms.settings;
 const presetInput = document.forms.settings.preset;
 const rootsContainer = document.getElementById('roots');
+const scaleOutput = document.getElementById('scale');
+scaleOutput.innerHTML = (1/scale).toExponential(2);
 
 presets.forEach((preset, index) => {
     presetInput.innerHTML += '<option value="' + index + '">' + preset.name + '</option>';
@@ -92,6 +96,24 @@ function setPreset(index, updateForm=true) {
     // Get preset
     const preset = presets[index];
 
+    // Show inputs
+    const inputs = preset.input || 'iterations';
+
+    if (inputs === 'iterations') {
+        document.getElementById('parameter').style.display = 'none';
+        document.getElementById('iterations').style.display = 'block';
+    } else {
+        document.getElementById('parameter').style.display = 'block';
+        document.getElementById('iterations').style.display = 'none';
+    }
+
+    let c = ['0.0', '0.0'];
+
+    if (preset.c) {
+        c[0] = ((preset.c[0]+'').indexOf('.') === -1) ? (preset.c[0] + '.0') : preset.c[0];
+        c[1] = ((preset.c[1]+'').indexOf('.') === -1) ? (preset.c[1] + '.0') : preset.c[1];
+    }
+
     // Create source
     let presetVertexShaderSource = vertexShaderSource;
     let presetFragmentShaderSource = fragmentShaderSource;
@@ -100,10 +122,10 @@ function setPreset(index, updateForm=true) {
         .replace(/ITERATIONS/g, preset.iterations + '');
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/X_ITERATION/g, preset.x);
+        .replace(/X_ITERATION/g, preset.x.replace(/Re\(c\)/g, c[0]).replace(/Im\(c\)/g, c[1]));
 
     presetVertexShaderSource = presetVertexShaderSource
-        .replace(/Y_ITERATION/g, preset.y);
+        .replace(/Y_ITERATION/g, preset.y.replace(/Re\(c\)/g, c[0]).replace(/Im\(c\)/g, c[1]));
 
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/FADE/g, (preset.fade + '').indexOf('.') === -1 ? preset.fade + '.0' : preset.fade + '');
@@ -111,12 +133,18 @@ function setPreset(index, updateForm=true) {
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/ROOTS/g, preset.roots.length + '');
 
+    console.log('Vertex shader:');
     console.log(presetVertexShaderSource);
+    
+    console.log('Fragment shader:');
+    console.log(presetFragmentShaderSource);
 
     // Update form
     if (updateForm) {
         form.x.value = preset.x;
         form.y.value = preset.y;
+        form.re_c.value = c[0];
+        form.im_c.value = c[1];
         form.iterations.value = preset.iterations;
         form.fade.value = preset.fade;
 
@@ -130,8 +158,8 @@ function setPreset(index, updateForm=true) {
             const color = 'rgb(' + r + ',' + g + ',' + b + ')';
 
             rootsContainer.innerHTML += '<div class="root-color" style="background-color: '+color+'"></div>';
-            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ';
-            rootsContainer.innerHTML += '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i';
+            rootsContainer.innerHTML += '<input type="number" step="0.1" value="' + root[0] + '" placeholder="Real part"> + ';
+            rootsContainer.innerHTML += '<input type="number" step="0.1" value="' + root[1] + '" placeholder="Imaginary part"> i';
             rootsContainer.innerHTML += ' <button type="button">Remove</button><br>';
         });
 
@@ -199,6 +227,7 @@ function setPreset(index, updateForm=true) {
         scale = canvas.width / 5;
         offset[0] = canvas.width / 2;
         offset[1] = canvas.height / 2;
+        scaleOutput.innerHTML = (1/scale).toExponential(2);
     }
 
     gl.uniform2f(offsetUniformLocation, offset[0], offset[1]);
@@ -275,11 +304,17 @@ canvas.addEventListener('wheel', e => {
 
     const previousScale = scale;
 
-    scale -= e.deltaY/10;
+    if (e.deltaY < 0) {
+        scale *= 2;
+    } else {
+        scale /= 2;
+    }
 
     if (scale < 1) {
         scale = 1;
     }
+
+    scaleOutput.innerHTML = (1/scale).toExponential(2);
 
     offset[0] = scale/previousScale*(offset[0] - canvas.width/2) + canvas.width/2;
     offset[1] = scale/previousScale*(offset[1] - canvas.height/2) + canvas.height/2;
@@ -310,6 +345,20 @@ form.y.addEventListener('input', () => {
     preset.y = form.y.value;
     setPreset(activePresetIndex, false);
 });
+
+// Change parameter real part
+form.re_c.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.c[0] = form.re_c.value;
+    setPreset(activePresetIndex, false);
+})
+
+// Change parameter imaginary part
+form.im_c.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.c[1] = form.im_c.value;
+    setPreset(activePresetIndex, false);
+})
 
 // Change iterations
 form.iterations.addEventListener('input', () => {
