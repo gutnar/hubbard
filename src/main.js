@@ -111,7 +111,11 @@ function setPreset(index, updateForm=true) {
     presetFragmentShaderSource = presetFragmentShaderSource
         .replace(/ROOTS/g, preset.roots.length + '');
 
+    console.log('Vertex shader:');
     console.log(presetVertexShaderSource);
+    
+    console.log('Fragment shader:');
+    console.log(presetFragmentShaderSource);
 
     // Update form
     if (updateForm) {
@@ -275,7 +279,15 @@ canvas.addEventListener('wheel', e => {
 
     const previousScale = scale;
 
-    scale -= e.deltaY/10;
+    if (e.ctrlKey) {
+        if (e.deltaY < 0) {
+            scale *= 2;
+        } else {
+            scale /= 2;
+        }
+    } else {
+        scale -= e.deltaY/10;
+    }
 
     if (scale < 1) {
         scale = 1;
