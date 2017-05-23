@@ -26322,13 +26322,13 @@ module.exports = create();
 /* 142 */
 /***/ (function(module, exports) {
 
-module.exports = "precision highp float;\nuniform vec2 u_roots[ROOTS];\nvarying vec2 v_root;\n\nfloat sq(float value) {\n    return value*value;\n}\n\nfloat hue2rgb(float p, float q, float t) {\n    if (t < 0.0) t += 1.0;\n    if (t > 1.0) t -= 1.0;\n    if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;\n    if (t < 1.0/2.0) return q;\n    if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;\n    return p;\n}\n\nvec3 hsv2rgb(float h, float s, float v) {\n    vec3 c = vec3(0.0, 0.0, 0.0);\n\n    if (s == 0.0) {\n        c[0] = c[1] = c[2] = v;\n    } else {\n        float q = (v < 0.5) ? (v * (1.0 + s)) : (v + s - v * s);\n        float p = 2.0 * v - q;\n\n        c[0] = hue2rgb(p, q, h + 1.0/3.0);\n        c[1] = hue2rgb(p, q, h);\n        c[2] = hue2rgb(p, q, h - 1.0/3.0);\n    }\n\n    return c;\n}\n\nvoid main() {\n    // Find closest root\n    int closest = -1;\n    float closestDist;\n\n    for (int i = 0; i < ROOTS; ++i) {\n        float dist = sq(v_root[0] - u_roots[i][0]) + sq(v_root[1] - u_roots[i][1]);\n\n        if (closest == -1 || dist < closestDist) {\n            closest = i;\n            closestDist = dist;\n        }\n    }\n\n    // Generate hue based on closest root\n    float hue = 1.0/ROOTS.0 * float(closest + 1);\n\n    // Generate lighting based on distance to closest root\n    float lighting = 0.5 - sqrt(closestDist)/FADE/2.0;\n\n    // Discard if not close enough\n    if (lighting <= 0.0) {\n        discard;\n    }\n\n    gl_FragColor = vec4(hsv2rgb(hue, 1.0, lighting), 1.0);\n}"
+module.exports = "precision highp float;\r\nuniform vec2 u_roots[ROOTS];\r\nvarying vec2 v_root;\r\n\r\nfloat sq(float value) {\r\n    return value*value;\r\n}\r\n\r\nfloat hue2rgb(float p, float q, float t) {\r\n    if (t < 0.0) t += 1.0;\r\n    if (t > 1.0) t -= 1.0;\r\n    if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;\r\n    if (t < 1.0/2.0) return q;\r\n    if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;\r\n    return p;\r\n}\r\n\r\nvec3 hsv2rgb(float h, float s, float v) {\r\n    vec3 c = vec3(0.0, 0.0, 0.0);\r\n\r\n    if (s == 0.0) {\r\n        c[0] = c[1] = c[2] = v;\r\n    } else {\r\n        float q = (v < 0.5) ? (v * (1.0 + s)) : (v + s - v * s);\r\n        float p = 2.0 * v - q;\r\n\r\n        c[0] = hue2rgb(p, q, h + 1.0/3.0);\r\n        c[1] = hue2rgb(p, q, h);\r\n        c[2] = hue2rgb(p, q, h - 1.0/3.0);\r\n    }\r\n\r\n    return c;\r\n}\r\n\r\nvoid main() {\r\n    // Find closest root\r\n    int closest = -1;\r\n    float closestDist;\r\n\r\n    for (int i = 0; i < ROOTS; ++i) {\r\n        float dist = sq(v_root[0] - u_roots[i][0]) + sq(v_root[1] - u_roots[i][1]);\r\n\r\n        if (closest == -1 || dist < closestDist) {\r\n            closest = i;\r\n            closestDist = dist;\r\n        }\r\n    }\r\n\r\n    // Generate hue based on closest root\r\n    float hue = 1.0/ROOTS.0 * float(closest + 1);\r\n\r\n    // Generate lighting based on distance to closest root\r\n    float lighting = 0.5 - sqrt(closestDist)/FADE/2.0;\r\n\r\n    // Discard if not close enough\r\n    if (lighting <= 0.0) {\r\n        discard;\r\n    }\r\n\r\n    gl_FragColor = vec4(hsv2rgb(hue, 1.0, lighting), 1.0);\r\n}"
 
 /***/ }),
 /* 143 */
 /***/ (function(module, exports) {
 
-module.exports = "precision highp float;\nattribute vec2 a_position;\nuniform vec2 u_resolution;\nuniform vec2 u_offset;\nuniform float u_scale;\nvarying vec2 v_root;\n\nfloat sq(float value) {\n    return value*value;\n}\n\nfloat cb(float value) {\n    return value*value*value;\n}\n\nvoid main() {\n    // Find point location in clip space\n    vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;\n\n    // Set origin to top-left\n    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n\n    // Point size\n    gl_PointSize = 1.0;\n\n    // Convert pixel location to point\n    vec2 point = (a_position - u_offset) / u_scale;\n\n    // Iterate\n    v_root = point;\n\n    for (int i = 0; i < ITERATIONS; ++i) {\n        float x = v_root[0];\n        float y = v_root[1];\n\n        v_root[0] = X_ITERATION;\n        v_root[1] = Y_ITERATION;\n    }\n}\n"
+module.exports = "precision highp float;\r\nattribute vec2 a_position;\r\nuniform vec2 u_resolution;\r\nuniform vec2 u_offset;\r\nuniform float u_scale;\r\nvarying vec2 v_root;\r\n\r\nfloat sq(float value) {\r\n    return value*value;\r\n}\r\n\r\nfloat cb(float value) {\r\n    return value*value*value;\r\n}\r\n\r\nvoid main() {\r\n    // Find point location in clip space\r\n    vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;\r\n\r\n    // Set origin to top-left\r\n    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\r\n\r\n    // Point size\r\n    gl_PointSize = 1.0;\r\n\r\n    // Convert pixel location to point\r\n    vec2 point = (a_position - u_offset) / u_scale;\r\n\r\n    // Iterate\r\n    v_root = point;\r\n\r\n    for (int i = 0; i < ITERATIONS; ++i) {\r\n        float x = v_root[0];\r\n        float y = v_root[1];\r\n\r\n        v_root[0] = X_ITERATION;\r\n        v_root[1] = Y_ITERATION;\r\n    }\r\n}\r\n"
 
 /***/ }),
 /* 144 */
@@ -26361,12 +26361,14 @@ const presets = [{
     y: 'y + 0.25*y*(sq(y) - 3.0*sq(x))/cb(sq(x) + sq(y))',
     roots: [[1, 0], [-1, 0], [0, 1], [0, -1]],
     iterations: 20,
-    fade: 5.0
+    fade: 500000
 }, {
     name: 'Julia set',
-    x: 'sq(x) - sq(y) - 0.4',
-    y: '2.0*x*y + 0.6',
-    roots: [[0, 0]],
+    input: 'parameter',
+    x: 'sq(x) - sq(y) + Re(c)',
+    y: '2.0*x*y + Im(c)',
+    c: [-0.618, 0],
+    roots: [[1, 0], [0, 1]],
     iterations: 20,
     fade: 2.0
 }, {
@@ -26396,6 +26398,8 @@ const presets = [{
 const form = document.forms.settings;
 const presetInput = document.forms.settings.preset;
 const rootsContainer = document.getElementById('roots');
+const scaleOutput = document.getElementById('scale');
+scaleOutput.innerHTML = (1 / scale).toExponential(2);
 
 presets.forEach((preset, index) => {
     presetInput.innerHTML += '<option value="' + index + '">' + preset.name + '</option>';
@@ -26431,26 +26435,50 @@ function setPreset(index, updateForm = true) {
     // Get preset
     const preset = presets[index];
 
+    // Show inputs
+    const inputs = preset.input || 'iterations';
+
+    if (inputs === 'iterations') {
+        document.getElementById('parameter').style.display = 'none';
+        document.getElementById('iterations').style.display = 'block';
+    } else {
+        document.getElementById('parameter').style.display = 'block';
+        document.getElementById('iterations').style.display = 'none';
+    }
+
+    let c = ['0.0', '0.0'];
+
+    if (preset.c) {
+        c[0] = (preset.c[0] + '').indexOf('.') === -1 ? preset.c[0] + '.0' : preset.c[0];
+        c[1] = (preset.c[1] + '').indexOf('.') === -1 ? preset.c[1] + '.0' : preset.c[1];
+    }
+
     // Create source
     let presetVertexShaderSource = __WEBPACK_IMPORTED_MODULE_2__vs_glsl___default.a;
     let presetFragmentShaderSource = __WEBPACK_IMPORTED_MODULE_3__fs_glsl___default.a;
 
     presetVertexShaderSource = presetVertexShaderSource.replace(/ITERATIONS/g, preset.iterations + '');
 
-    presetVertexShaderSource = presetVertexShaderSource.replace(/X_ITERATION/g, preset.x);
+    presetVertexShaderSource = presetVertexShaderSource.replace(/X_ITERATION/g, preset.x.replace(/Re\(c\)/g, c[0]).replace(/Im\(c\)/g, c[1]));
 
-    presetVertexShaderSource = presetVertexShaderSource.replace(/Y_ITERATION/g, preset.y);
+    presetVertexShaderSource = presetVertexShaderSource.replace(/Y_ITERATION/g, preset.y.replace(/Re\(c\)/g, c[0]).replace(/Im\(c\)/g, c[1]));
 
     presetFragmentShaderSource = presetFragmentShaderSource.replace(/FADE/g, (preset.fade + '').indexOf('.') === -1 ? preset.fade + '.0' : preset.fade + '');
 
     presetFragmentShaderSource = presetFragmentShaderSource.replace(/ROOTS/g, preset.roots.length + '');
 
+    console.log('Vertex shader:');
     console.log(presetVertexShaderSource);
+
+    console.log('Fragment shader:');
+    console.log(presetFragmentShaderSource);
 
     // Update form
     if (updateForm) {
         form.x.value = preset.x;
         form.y.value = preset.y;
+        form.re_c.value = c[0];
+        form.im_c.value = c[1];
         form.iterations.value = preset.iterations;
         form.fade.value = preset.fade;
 
@@ -26464,8 +26492,8 @@ function setPreset(index, updateForm = true) {
             const color = 'rgb(' + r + ',' + g + ',' + b + ')';
 
             rootsContainer.innerHTML += '<div class="root-color" style="background-color: ' + color + '"></div>';
-            rootsContainer.innerHTML += '<input type="number" value="' + root[0] + '" placeholder="Real part"> + ';
-            rootsContainer.innerHTML += '<input type="number" value="' + root[1] + '" placeholder="Imaginary part"> i';
+            rootsContainer.innerHTML += '<input type="number" step="0.1" value="' + root[0] + '" placeholder="Real part"> + ';
+            rootsContainer.innerHTML += '<input type="number" step="0.1" value="' + root[1] + '" placeholder="Imaginary part"> i';
             rootsContainer.innerHTML += ' <button type="button">Remove</button><br>';
         });
 
@@ -26533,6 +26561,7 @@ function setPreset(index, updateForm = true) {
         scale = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 5;
         offset[0] = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 2;
         offset[1] = __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height / 2;
+        scaleOutput.innerHTML = (1 / scale).toExponential(2);
     }
 
     __WEBPACK_IMPORTED_MODULE_0__gl__["c" /* gl */].uniform2f(offsetUniformLocation, offset[0], offset[1]);
@@ -26609,11 +26638,17 @@ __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].addEventListener('wheel', e 
 
     const previousScale = scale;
 
-    scale -= e.deltaY / 10;
+    if (e.deltaY < 0) {
+        scale *= 2;
+    } else {
+        scale /= 2;
+    }
 
     if (scale < 1) {
         scale = 1;
     }
+
+    scaleOutput.innerHTML = (1 / scale).toExponential(2);
 
     offset[0] = scale / previousScale * (offset[0] - __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 2) + __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].width / 2;
     offset[1] = scale / previousScale * (offset[1] - __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height / 2) + __WEBPACK_IMPORTED_MODULE_0__gl__["a" /* canvas */].height / 2;
@@ -26642,6 +26677,20 @@ form.x.addEventListener('input', () => {
 form.y.addEventListener('input', () => {
     const preset = presets[activePresetIndex];
     preset.y = form.y.value;
+    setPreset(activePresetIndex, false);
+});
+
+// Change parameter real part
+form.re_c.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.c[0] = form.re_c.value;
+    setPreset(activePresetIndex, false);
+});
+
+// Change parameter imaginary part
+form.im_c.addEventListener('input', () => {
+    const preset = presets[activePresetIndex];
+    preset.c[1] = form.im_c.value;
     setPreset(activePresetIndex, false);
 });
 
